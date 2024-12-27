@@ -11,7 +11,7 @@ except ImportError:  # pragma: nocoverage
     from iso8601 import parse_date
 
     parse_datetime = functools.partial(parse_date, default_timezone=None)
-from pypika import OracleQuery
+from pypika_tortoise import OracleQuery
 
 from tortoise.backends.base.client import (
     Capabilities,
@@ -57,10 +57,10 @@ class OracleClient(ODBCClient):
         self.dsn = f"DRIVER={driver};DBQ={dbq};UID={user};PWD={password};"
 
     def _in_transaction(self) -> "TransactionContext":
-        return TransactionContextPooled(TransactionWrapper(self))
+        return TransactionContextPooled(TransactionWrapper(self), self._pool_init_lock)
 
     def acquire_connection(self) -> Union["ConnectionWrapper", "PoolConnectionWrapper"]:
-        return OraclePoolConnectionWrapper(self)
+        return OraclePoolConnectionWrapper(self, self._pool_init_lock)
 
     async def db_create(self) -> None:
         await self.create_connection(with_db=False)

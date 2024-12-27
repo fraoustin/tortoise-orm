@@ -1,4 +1,5 @@
 import abc
+import asyncio
 from asyncio.events import AbstractEventLoop
 from functools import wraps
 from typing import (
@@ -15,7 +16,7 @@ from typing import (
     Union,
 )
 
-from pypika import PostgreSQLQuery
+from pypika_tortoise import PostgreSQLQuery
 
 from tortoise.backends.base.client import (
     BaseDBAsyncClient,
@@ -90,6 +91,7 @@ class BasePostgresClient(BaseDBAsyncClient, abc.ABC):
         self._template: dict = {}
         self._pool = None
         self._connection = None
+        self._pool_init_lock = asyncio.Lock()
 
     @abc.abstractmethod
     async def create_connection(self, with_db: bool) -> None:
@@ -128,7 +130,7 @@ class BasePostgresClient(BaseDBAsyncClient, abc.ABC):
             await self.close()
 
     def acquire_connection(self) -> Union["ConnectionWrapper", "PoolConnectionWrapper"]:
-        return PoolConnectionWrapper(self._pool)
+        return PoolConnectionWrapper(self._pool, self._pool_init_lock)
 
     @abc.abstractmethod
     def _in_transaction(self) -> "TransactionContext":

@@ -11,7 +11,7 @@ from inspect import isclass
 from types import ModuleType
 from typing import Any, Callable, Coroutine, Iterable, Type, cast
 
-from pypika import Query, Table
+from pypika_tortoise import Query, Table
 
 from tortoise.backends.base.client import BaseDBAsyncClient
 from tortoise.backends.base.config_generator import expand_db_url, generate_config
@@ -399,7 +399,9 @@ class Tortoise:
         table_name_generator: Callable[[Type["Model"]], str] | None = None,
     ) -> None:
         """
-        Sets up Tortoise-ORM.
+        Sets up Tortoise-ORM: loads apps and models, configures database connections but does not
+        connect to the database yet. The actual connection or connection pool is established
+        lazily on first query execution.
 
         You can configure using only one of ``config``, ``config_file``
         and ``(db_url, modules)``.

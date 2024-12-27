@@ -16,7 +16,7 @@ from typing import (
 )
 
 import aiosqlite
-from pypika import SQLLiteQuery
+from pypika_tortoise import SQLLiteQuery
 
 from tortoise.backends.base.client import (
     BaseDBAsyncClient,
@@ -190,8 +190,8 @@ class SqliteTransactionContext(TransactionContext):
             self.connection._connection = self.connection._parent._connection
 
     async def __aenter__(self) -> T_conn:
-        await self.ensure_connection()
         await self._trxlock.acquire()
+        await self.ensure_connection()
         self.token = connections.set(self.connection_name, self.connection)
         await self.connection.begin()
         return self.connection
